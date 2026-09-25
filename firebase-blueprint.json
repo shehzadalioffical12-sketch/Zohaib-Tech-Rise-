@@ -1,0 +1,106 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role-based access information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "fullName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 100, "format": "email" },
+        "role": { "type": "string", "enum": ["super_admin", "instructor", "student"] },
+        "accountStatus": { "type": "string", "enum": ["active", "pending", "suspended"] },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["uid", "fullName", "email", "role", "accountStatus"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Educational course metadata and curriculum",
+      "type": "object",
+      "properties": {
+        "courseId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "slug": { "type": "string", "maxLength": 200 },
+        "shortDescription": { "type": "string", "maxLength": 500 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "thumbnail": { "type": "string", "maxLength": 1000 },
+        "categoryId": { "type": "string", "maxLength": 64 },
+        "level": { "type": "string", "enum": ["Beginner", "Intermediate", "Advanced", "All Levels"] },
+        "status": { "type": "string", "enum": ["draft", "published", "archived"] },
+        "certificateEnabled": { "type": "boolean" },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["courseId", "title", "slug", "categoryId", "level", "status"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Student enrollment record for a specific course",
+      "type": "object",
+      "properties": {
+        "enrollmentId": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "courseId": { "type": "string", "maxLength": 128 },
+        "enrollmentDate": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["active", "completed", "dropped"] },
+        "progressPercentage": { "type": "number" }
+      },
+      "required": ["enrollmentId", "studentId", "courseId", "enrollmentDate", "status"]
+    },
+    "LessonProgress": {
+      "title": "LessonProgress",
+      "description": "Video playback tracking and completion state",
+      "type": "object",
+      "properties": {
+        "progressId": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "courseId": { "type": "string", "maxLength": 128 },
+        "lessonId": { "type": "string", "maxLength": 128 },
+        "lastPlaybackPosition": { "type": "number" },
+        "completionStatus": { "type": "string", "enum": ["in_progress", "completed"] },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["progressId", "studentId", "courseId", "lessonId", "completionStatus"]
+    },
+    "Certificate": {
+      "title": "Certificate",
+      "description": "Official completion certificate verified by unique code",
+      "type": "object",
+      "properties": {
+        "certificateId": { "type": "string", "maxLength": 128 },
+        "studentId": { "type": "string", "maxLength": 128 },
+        "studentName": { "type": "string", "maxLength": 128 },
+        "courseId": { "type": "string", "maxLength": 128 },
+        "courseTitle": { "type": "string", "maxLength": 200 },
+        "verificationCode": { "type": "string", "maxLength": 64 },
+        "issueDate": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["valid", "revoked"] }
+      },
+      "required": ["certificateId", "studentId", "courseId", "verificationCode", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user accounts"
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Collection of educational courses"
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": "Enrollment",
+      "description": "Course enrollments linking students to courses"
+    },
+    "/lessonProgress/{progressId}": {
+      "schema": "LessonProgress",
+      "description": "Playback tracking and lesson completion status"
+    },
+    "/certificates/{certificateId}": {
+      "schema": "Certificate",
+      "description": "Verified certificates issued to students"
+    }
+  }
+}

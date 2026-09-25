@@ -1,0 +1,6 @@
+{
+  "name": "Zohaib Tech Rise LMS",
+  "description": "Learn Today. Innovate Tomorrow. Comprehensive Learning Management System with Admin, Instructor, and Student portals, customizable certificates, quizzes, and assignment management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

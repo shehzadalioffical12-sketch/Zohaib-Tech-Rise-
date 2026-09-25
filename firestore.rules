@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all unknown paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'shehzadalioffical12@gmail.com' ||
+        request.auth.token.email == 'admin@taleem.edu.pk' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isInstructor() {
+      return isSignedIn() && (
+        isAdmin() ||
+        exists(/databases/$(database)/documents/instructors/$(request.auth.uid))
+      );
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Courses Collection - Published courses publicly readable
+    match /courses/{courseId} {
+      allow read: if resource.data.status == 'published' || isInstructor() || isAdmin();
+      allow create, update, delete: if isInstructor() || isAdmin();
+    }
+
+    // Categories
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Modules & Lessons
+    match /modules/{moduleId} {
+      allow read: if true;
+      allow write: if isInstructor() || isAdmin();
+    }
+
+    match /lessons/{lessonId} {
+      allow read: if true;
+      allow write: if isInstructor() || isAdmin();
+    }
+
+    // Enrollments
+    match /enrollments/{enrollmentId} {
+      allow read: if isSignedIn() && (resource.data.studentId == request.auth.uid || isInstructor() || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
+      allow update: if isSignedIn() && (resource.data.studentId == request.auth.uid || isInstructor() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Lesson Progress
+    match /lessonProgress/{progressId} {
+      allow read: if isSignedIn() && (resource.data.studentId == request.auth.uid || isInstructor() || isAdmin());
+      allow create, update: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // Quizzes & Attempts
+    match /quizzes/{quizId} {
+      allow read: if isSignedIn();
+      allow write: if isInstructor() || isAdmin();
+    }
+
+    match /quizAttempts/{attemptId} {
+      allow read: if isSignedIn() && (resource.data.studentId == request.auth.uid || isInstructor() || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
+      allow update: if isSignedIn() && (resource.data.studentId == request.auth.uid || isInstructor() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Assignments & Submissions
+    match /assignments/{assignmentId} {
+      allow read: if isSignedIn();
+      allow write: if isInstructor() || isAdmin();
+    }
+
+    match /assignmentSubmissions/{submissionId} {
+      allow read: if isSignedIn() && (resource.data.studentId == request.auth.uid || isInstructor() || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
+      allow update: if isSignedIn() && (resource.data.studentId == request.auth.uid || isInstructor() || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Certificates - Publicly readable for verification
+    match /certificates/{certificateId} {
+      allow read: if true;
+      allow write: if isAdmin() || isInstructor();
+    }
+
+    // Notifications
+    match /notifications/{notifId} {
+      allow read, update, delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn();
+    }
+
+    // Announcements
+    match /announcements/{annId} {
+      allow read: if true;
+      allow write: if isAdmin() || isInstructor();
+    }
+
+    // Site Settings
+    match /siteSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
